@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Acid–Base Imbalance · Interactive Infographic</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --bg-page: #f7fafc;
+      --bg-card: #ffffff;
+      --bg-soft: #f1f5f9;
+      --border-strong: #1e293b;
+      --border-soft: #cbd5e1;
+      --accent-blue: #3b82f6;
+      --accent-blue-soft: #dbeafe;
+      --accent-yellow: #fbbf24;
+      --accent-red: #ef4444;
+      --accent-green: #22c55e;
+      --text-main: #111827;
+      --text-soft: #4b5563;
+      --text-muted: #6b7280;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --radius-pill: 999px;
+      --shadow-soft: 4px 4px 0 #1e293b;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg-page);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .infographic-shell {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 16px 16px 32px;
+    }
+
+    /* Title block */
+    .title-card {
+      background: #e5f0ff;
+      border-radius: 24px;
+      border: 3px solid var(--border-strong);
+      box-shadow: var(--shadow-soft);
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    @media (max-width: 640px) {
+      .title-card {
+        position: static;
+      }
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .title-logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 3px solid var(--border-strong);
+      background: radial-gradient(circle at 30% 30%, #ffffff, #bfdbfe);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 800;
+      color: #1e293b;
+    }
+
+    .title-text-main {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      color: #111827;
+    }
+
+    .title-text-sub {
+      font-size: 13px;
+      color: var(--text-soft);
+    }
+
+    .title-tagline {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .title-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .pill-tag {
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      border: 2px solid var(--border-strong);
+      background: #fefce8;
+      font-size: 11px;
+      color: var(--text-main);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pill-tag-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      border: 1px solid #14532d;
+    }
+
+    /* Section wrapper */
+    .section {
+      margin-top: 16px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #111827;
+      margin-bottom: 8px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      border: 3px solid var(--border-strong);
+      box-shadow: var(--shadow-soft);
+      padding: 14px 16px;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 700px) {
+      .two-col {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .mini-heading {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-soft);
+      margin-bottom: 4px;
+    }
+
+    .text-soft {
+      color: var(--text-soft);
+      font-size: 13px;
+    }
+
+    .bubble {
+      border-radius: 18px;
+      border: 2px dashed var(--border-strong);
+      background: var(--bg-soft);
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+
+    /* Click-to-reveal tiles */
+    .tile-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    @media (max-width: 640px) {
+      .tile-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .tile {
+      border-radius: var(--radius-md);
+      border: 2px solid var(--border-strong);
+      background: #ffffff;
+      padding: 8px 10px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .tile-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .tile-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .tile-tag {
+      font-size: 10px;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      border: 2px solid var(--border-soft);
+      color: var(--text-muted);
+      background: var(--bg-soft);
+    }
+
+    .tile-body {
+      font-size: 12px;
+      color: var(--text-soft);
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.18s ease-out;
+    }
+
+    .tile.open .tile-body {
+      max-height: 200px;
+      margin-top: 4px;
+    }
+
+    .tile-icon {
+      font-size: 14px;
+    }
+
+    /* Simple normal ranges strip */
+    .strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+      font-size: 12px;
+    }
+
+    .strip-item {
+      padding: 4px 8px;
+      border-radius: var(--radius-pill);
+      border: 2px solid var(--border-strong);
+      background: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .strip-label {
+      color: var(--text-soft);
+    }
+
+    .strip-value {
+      font-weight: 700;
+      color: #111827;
+    }
+
+    /* Pattern cards (4 main imbalances) */
+    .pattern-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 640px) {
+      .pattern-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .pattern-card {
+      border-radius: var(--radius-md);
+      border: 3px solid var(--border-strong);
+      background: #ffffff;
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+
+    .pattern-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .pattern-title.resp {
+      color: #1d4ed8;
+    }
+
+    .pattern-title.met {
+      color: #047857;
+    }
+
+    .pattern-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: var(--radius-pill);
+      border: 2px solid var(--border-soft);
+      font-size: 10px;
+      color: var(--text-muted);
+      background: #eff6ff;
+      margin-bottom: 4px;
+    }
+
+    .pattern-list {
+      padding-left: 16px;
+      margin: 2px 0 4px;
+    }
+
+    .pattern-list li {
+      margin-bottom: 2px;
+      color: var(--text-soft);
+    }
+
+    /* Interactive mini ABG dial */
+    .dial-card {
+      margin-top: 6px;
+      border-radius: var(--radius-md);
+      border: 3px solid var(--border-strong);
+      background: #ffffff;
+      padding: 10px 12px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+      gap: 10px;
+    }
+
+    @media (max-width: 700px) {
+      .dial-card {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .slider-group {
+      margin-bottom: 8px;
+    }
+
+    .slider-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+
+    .slider-label-row strong {
+      color: #111827;
+    }
+
+    .slider-range {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      margin-top: 4px;
+      -webkit-appearance: none;
+      height: 8px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      border: 2px solid var(--border-strong);
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #bfdbfe;
+      border: 2px solid var(--border-strong);
+      box-shadow: 2px 2px 0 #1e293b;
+      cursor: pointer;
+      margin-top: -7px;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #bfdbfe;
+      border: 2px solid var(--border-strong);
+      box-shadow: 2px 2px 0 #1e293b;
+      cursor: pointer;
+    }
+
+    .dial-abg {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      background: #ffffff;
+      border-radius: var(--radius-pill);
+      border: 2px solid var(--border-strong);
+      padding: 4px 8px;
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .dial-output-main {
+      font-size: 13px;
+      font-weight: 700;
+      color: #111827;
+      margin-top: 4px;
+      margin-bottom: 4px;
+    }
+
+    .dial-output-sub {
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: var(--radius-pill);
+      border: 2px solid var(--border-soft);
+      font-size: 11px;
+      color: var(--text-muted);
+      background: #eff6ff;
+    }
+
+    /* Guided flow mini-strip */
+    .flow-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+      font-size: 11px;
+    }
+
+    .flow-step {
+      padding: 4px 8px;
+      border-radius: var(--radius-pill);
+      border: 2px solid var(--border-strong);
+      background: #ffffff;
+    }
+
+    /* Footer note */
+    .footer-note {
+      margin-top: 18px;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+<div class="infographic-shell">
+
+  <!-- Title / Header -->
+  <section class="title-card">
+    <div class="title-row">
+      <div class="title-logo">ABG</div>
+      <div>
+        <div class="title-text-main">Acid–Base Imbalance · Interactive Infographic</div>
+        <div class="title-text-sub">
+          A visual walkthrough for nursing students: from normal values to recognizing ABG patterns.
+        </div>
+      </div>
+    </div>
+    <div class="title-tagline">
+      Scroll down, tap tiles, and nudge the sliders. Your brain will remember the patterns better if it plays with them.
+    </div>
+    <div class="title-tags">
+      <div class="pill-tag">
+        <span class="pill-tag-dot"></span> Beginner-friendly overview
+      </div>
+      <div class="pill-tag">Click-to-reveal patterns</div>
+      <div class="pill-tag">Live ABG mini-simulator</div>
+    </div>
+  </section>
+
+  <!-- Section 1: Big picture -->
+  <section class="section">
+    <div class="section-label">Part 1</div>
+    <div class="section-title">What are we actually balancing?</div>
+    <div class="card">
+      <div class="two-col">
+        <div>
+          <div class="mini-heading">pH: the overall balance</div>
+          <p class="text-soft">
+            Blood pH is normally <strong>7.35–7.45</strong>. Below 7.35 is acidosis; above 7.45 is alkaosis.
+            pH is the final result of how acids and bases are handled in the body — especially CO₂ and HCO₃⁻.
+          </p>
+          <div class="bubble">
+            <strong>Think of pH like a “status bar.”</strong><br/>
+            It tells you <em>what</em> direction things are going (acid vs base), but not yet <em>who</em> is responsible.
+          </div>
+        </div>
+        <div>
+          <div class="mini-heading">The three key numbers</div>
+          <p class="text-soft">
+            Most ABG interpretation starts with three values. Everything else is detail:
+          </p>
+          <div class="strip">
+            <div class="strip-item">
+              <span class="strip-label">pH</span>
+              <span class="strip-value">7.35–7.45</span>
+            </div>
+            <div class="strip-item">
+              <span class="strip-label">PaCO₂</span>
+              <span class="strip-value">35–45 mmHg</span>
+            </div>
+            <div class="strip-item">
+              <span class="strip-label">HCO₃⁻</span>
+              <span class="strip-value">22–26 mEq/L</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Lungs vs Kidneys (click tiles) -->
+  <section class="section">
+    <div class="section-label">Part 2</div>
+    <div class="section-title">Who fixes what? Lungs vs kidneys</div>
+    <div class="card">
+      <p class="text-soft">
+        Tap each tile to reveal how that system influences pH. Remember: lungs are fast, kidneys are slow — but both matter.
+      </p>
+
+      <div class="tile-grid">
+        <div class="tile" data-tile>
+          <div class="tile-header">
+            <div class="tile-title">Lungs · PaCO₂</div>
+            <div class="tile-tag">Tap to expand</div>
+          </div>
+          <div class="tile-body">
+            <p>
+              The lungs control <strong>PaCO₂</strong>, a respiratory acid. When you hypoventilate, CO₂ builds up → more acid →
+              pH drops. When you hyperventilate, CO₂ is blown off → less acid → pH rises.
+            </p>
+            <p>
+              Changes happen within minutes. Respiratory changes are the body’s quick reaction to pH shifts.
+            </p>
+          </div>
+        </div>
+
+        <div class="tile" data-tile>
+          <div class="tile-header">
+            <div class="tile-title">Kidneys · HCO₃⁻</div>
+            <div class="tile-tag">Tap to expand</div>
+          </div>
+          <div class="tile-body">
+            <p>
+              The kidneys control <strong>HCO₃⁻</strong>, a metabolic base. They can keep or dump bicarbonate and hydrogen ions.
+              This adjusts pH more slowly over hours to days.
+            </p>
+            <p>
+              Metabolic problems are often compensated by the lungs, and respiratory problems by the kidneys.
+            </p>
+          </div>
+        </div>
+
+        <div class="tile" data-tile>
+          <div class="tile-header">
+            <div class="tile-title">Buffers</div>
+            <div class="tile-tag">Tap to expand</div>
+          </div>
+          <div class="tile-body">
+            <p>
+              Buffer systems (like bicarbonate, phosphate, and proteins) are the “first responders.” They temporarily
+              soak up or release H⁺ to blunt pH swings while lungs and kidneys catch up.
+            </p>
+          </div>
+        </div>
+
+        <div class="tile" data-tile>
+          <div class="tile-header">
+            <div class="tile-title">The big idea</div>
+            <div class="tile-tag">Tap to expand</div>
+          </div>
+          <div class="tile-body">
+            <p>
+              Every ABG pattern is really a story of lungs (PaCO₂), kidneys (HCO₃⁻), and how well they’re compensating
+              for each other to protect pH.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Four primary patterns -->
+  <section class="section">
+    <div class="section-label">Part 3</div>
+    <div class="section-title">The four primary acid–base imbalances</div>
+    <div class="card">
+      <p class="text-soft">
+        Almost every primary ABG you see in practice fits one of these patterns. Mixed problems exist, but master these four first.
+      </p>
+
+      <div class="pattern-grid">
+        <div class="pattern-card">
+          <div class="pattern-title resp">Respiratory acidosis</div>
+          <div class="pattern-badge">pH ↓ · PaCO₂ ↑ · HCO₃⁻ normal/↑</div>
+          <ul class="pattern-list">
+            <li>Hypoventilation → CO₂ retention</li>
+            <li>COPD, opioid overdose, severe asthma, neuromuscular disease</li>
+          </ul>
+          <div class="bubble">
+            Think: <strong>slow, shallow breathing</strong>. Lungs fail to blow off CO₂ → pH drops.
+          </div>
+        </div>
+
+        <div class="pattern-card">
+          <div class="pattern-title resp">Respiratory alkalosis</div>
+          <div class="pattern-badge">pH ↑ · PaCO₂ ↓ · HCO₃⁻ normal/↓</div>
+          <ul class="pattern-list">
+            <li>Hyperventilation → CO₂ loss</li>
+            <li>Anxiety, pain, early sepsis, high altitude, over-ventilation</li>
+          </ul>
+          <div class="bubble">
+            Think: <strong>fast breathing</strong>. Too much CO₂ blown off → pH rises.
+          </div>
+        </div>
+
+        <div class="pattern-card">
+          <div class="pattern-title met">Metabolic acidosis</div>
+          <div class="pattern-badge">pH ↓ · HCO₃⁻ ↓ · PaCO₂ normal/↓</div>
+          <ul class="pattern-list">
+            <li>Excess acid or loss of bicarbonate</li>
+            <li>DKA, lactic acidosis, renal failure, severe diarrhea</li>
+          </ul>
+          <div class="bubble">
+            Think: <strong>too much acid or too little base</strong>. Lungs can compensate with deep, rapid breaths (Kussmaul).
+          </div>
+        </div>
+
+        <div class="pattern-card">
+          <div class="pattern-title met">Metabolic alkalosis</div>
+          <div class="pattern-badge">pH ↑ · HCO₃⁻ ↑ · PaCO₂ normal/↑</div>
+          <ul class="pattern-list">
+            <li>Loss of acid or gain of bicarbonate</li>
+            <li>Vomiting, NG suction, diuretics, antacid overuse, hyperaldosteronism</li>
+          </ul>
+          <div class="bubble">
+            Think: <strong>acid loss (stomach) or base gain</strong>. Lungs may hypoventilate to retain CO₂, but hypoxemia limits this.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: Interactive mini ABG dial -->
+  <section class="section">
+    <div class="section-label">Part 4</div>
+    <div class="section-title">Play with an ABG · See the pattern</div>
+    <div class="card">
+      <p class="text-soft">
+        Use this mini “ABG dial” to feel how changing pH, PaCO₂, and HCO₃⁻ shifts the diagnosis. Don’t overthink it — slide first,
+        then read the label.
+      </p>
+
+      <div class="dial-card">
+        <!-- Sliders -->
+        <div>
+          <div class="slider-group">
+            <div class="slider-label-row">
+              <div><strong>pH</strong> <span id="phValue">7.40</span></div>
+              <div class="slider-range">7.10 – 7.70 (Normal: 7.35–7.45)</div>
+            </div>
+            <input type="range" id="phSlider" min="7.10" max="7.70" step="0.01" value="7.40">
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-label-row">
+              <div><strong>PaCO₂</strong> <span id="paco2Value">40</span> mmHg</div>
+              <div class="slider-range">10 – 80 (Normal: 35–45)</div>
+            </div>
+            <input type="range" id="paco2Slider" min="10" max="80" step="1" value="40">
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-label-row">
+              <div><strong>HCO₃⁻</strong> <span id="hco3Value">24</span> mEq/L</div>
+              <div class="slider-range">10 – 40 (Normal: 22–26)</div>
+            </div>
+            <input type="range" id="hco3Slider" min="10" max="40" step="1" value="24">
+          </div>
+        </div>
+
+        <!-- Output -->
+        <div>
+          <div class="mini-heading">Your ABG</div>
+          <div class="dial-abg" id="abgDisplay">
+            pH 7.40 · PaCO₂ 40 mmHg · HCO₃⁻ 24 mEq/L
+          </div>
+          <div class="mini-heading" style="margin-top:6px;">Pattern</div>
+          <div class="dial-output-main" id="labConclusion">
+            Normal acid–base status.
+          </div>
+          <div class="dial-output-sub" id="labExplanation">
+            All three values are within the reference range. No obvious respiratory or metabolic disturbance.
+          </div>
+
+          <div class="flow-strip">
+            <div class="flow-step">1. Look at pH</div>
+            <div class="flow-step">2. Check PaCO₂</div>
+            <div class="flow-step">3. Check HCO₃⁻</div>
+            <div class="flow-step">4. Ask: who explains the pH?</div>
+          </div>
+
+          <div style="margin-top:6px;">
+            <span class="badge">Tip: Try making pH low with high PaCO₂, then with low HCO₃⁻. Notice the difference.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 5: One guided example -->
+  <section class="section">
+    <div class="section-label">Part 5</div>
+    <div class="section-title">Try this pattern in your head</div>
+    <div class="card">
+      <p class="text-soft">
+        Before you scroll away, rehearse this mentally. If you can narrate this flow without looking, you’re already ahead.
+      </p>
+      <div class="bubble">
+        <strong>ABG:</strong> pH 7.30 · PaCO₂ 50 mmHg · HCO₃⁻ 24 mEq/L<br/><br/>
+        1) pH is low → acidosis.<br/>
+        2) PaCO₂ is high, HCO₃⁻ is normal → lungs are the main problem.<br/>
+        3) Kidneys haven’t compensated yet → uncompensated respiratory acidosis.
+      </div>
+      <p class="text-soft" style="margin-top:8px;">
+        Repeat the same mental script for the opposite patterns. That repetition is what will show up when someone hands you
+        an ABG at 3 AM.
+      </p>
+    </div>
+  </section>
+
+  <div class="footer-note">
+    God Bless!
+  </div>
+
+</div>
+
+<script>
+  // Tile toggles (click-to-reveal)
+  document.querySelectorAll('[data-tile]').forEach(tile => {
+    tile.addEventListener('click', () => {
+      tile.classList.toggle('open');
+    });
+  });
+
+  // Interactive ABG mini dial
+  const phSlider = document.getElementById('phSlider');
+  const paco2Slider = document.getElementById('paco2Slider');
+  const hco3Slider = document.getElementById('hco3Slider');
+
+  const phValue = document.getElementById('phValue');
+  const paco2Value = document.getElementById('paco2Value');
+  const hco3Value = document.getElementById('hco3Value');
+
+  const abgDisplay = document.getElementById('abgDisplay');
+  const labConclusion = document.getElementById('labConclusion');
+  const labExplanation = document.getElementById('labExplanation');
+
+  function classifyABG(ph, paco2, hco3) {
+    const phState = ph < 7.35 ? 'acidosis' : ph > 7.45 ? 'alkalosis' : 'normal';
+
+    const respAcid = paco2 > 45;
+    const respAlk = paco2 < 35;
+    const metabAcid = hco3 < 22;
+    const metabAlk = hco3 > 26;
+
+    let primary = 'normal';
+    let explanation = '';
+
+    if (phState === 'normal') {
+      if ((respAcid && metabAlk) || (respAlk && metabAcid)) {
+        primary = 'compensated-mixed';
+        explanation = 'pH is normal, but PaCO₂ and HCO₃⁻ pull in opposite directions. This suggests a compensated or mixed disorder.';
+      } else if (respAcid || respAlk || metabAcid || metabAlk) {
+        primary = 'compensated-single';
+        explanation = 'pH is normal but one component is off. Likely a fully compensated respiratory or metabolic disturbance.';
+      } else {
+        primary = 'normal';
+        explanation = 'All values are near normal. No clear acid–base disorder.';
+      }
+    } else if (phState === 'acidosis') {
+      if (respAcid && !metabAcid) {
+        primary = 'respiratory-acidosis';
+        explanation = 'pH is low and PaCO₂ is high → CO₂ retention. Kidneys may later raise HCO₃⁻ to compensate.';
+      } else if (metabAcid && !respAcid) {
+        primary = 'metabolic-acidosis';
+        explanation = 'pH is low and HCO₃⁻ is low → metabolic acid gain or bicarbonate loss. Lungs should blow off CO₂ to help.';
+      } else if (respAcid && metabAcid) {
+        primary = 'mixed-acidosis';
+        explanation = 'Both PaCO₂ and HCO₃⁻ push pH down. Think severe combined respiratory + metabolic acidosis.';
+      } else {
+        primary = 'unclear-acidotic';
+        explanation = 'pH is acidemic, but the pattern does not clearly fit a single primary disturbance.';
+      }
+    } else if (phState === 'alkalosis') {
+      if (respAlk && !metabAlk) {
+        primary = 'respiratory-alkalosis';
+        explanation = 'pH is high and PaCO₂ is low → hyperventilation. Kidneys may later lower HCO₃⁻ to compensate.';
+      } else if (metabAlk && !respAlk) {
+        primary = 'metabolic-alkalosis';
+        explanation = 'pH is high and HCO₃⁻ is high → acid loss or bicarbonate gain. Lungs may retain CO₂ as compensation.';
+      } else if (respAlk && metabAlk) {
+        primary = 'mixed-alkalosis';
+        explanation = 'Both PaCO₂ and HCO₃⁻ push pH up. Think combined respiratory + metabolic alkalosis.';
+      } else {
+        primary = 'unclear-alkalotic';
+        explanation = 'pH is alkalemic, but the pattern does not clearly fit a single primary disturbance.';
+      }
+    }
+
+    let conclusion = '';
+    switch (primary) {
+      case 'normal':
+        conclusion = 'Normal acid–base status.';
+        break;
+      case 'respiratory-acidosis':
+        conclusion = 'Primary respiratory acidosis.';
+        break;
+      case 'metabolic-acidosis':
+        conclusion = 'Primary metabolic acidosis.';
+        break;
+      case 'respiratory-alkalosis':
+        conclusion = 'Primary respiratory alkalosis.';
+        break;
+      case 'metabolic-alkalosis':
+        conclusion = 'Primary metabolic alkalosis.';
+        break;
+      case 'mixed-acidosis':
+        conclusion = 'Mixed respiratory and metabolic acidosis.';
+        break;
+      case 'mixed-alkalosis':
+        conclusion = 'Mixed respiratory and metabolic alkalosis.';
+        break;
+      case 'compensated-mixed':
+        conclusion = 'Compensated or mixed disturbance with normal pH.';
+        break;
+      case 'compensated-single':
+        conclusion = 'Fully compensated primary disturbance (normal pH, abnormal component).';
+        break;
+      default:
+        conclusion = 'Acid–base disturbance present. Correlate with the clinical picture.';
+    }
+
+    return { conclusion, explanation };
+  }
+
+  function updateLab() {
+    const ph = parseFloat(phSlider.value);
+    const paco2 = parseFloat(paco2Slider.value);
+    const hco3 = parseFloat(hco3Slider.value);
+
+    phValue.textContent = ph.toFixed(2);
+    paco2Value.textContent = paco2.toFixed(0);
+    hco3Value.textContent = hco3.toFixed(0);
+
+    abgDisplay.textContent = `pH ${ph.toFixed(2)} · PaCO₂ ${paco2.toFixed(0)} mmHg · HCO₃⁻ ${hco3.toFixed(0)} mEq/L`;
+
+    const { conclusion, explanation } = classifyABG(ph, paco2, hco3);
+    labConclusion.textContent = conclusion;
+    labExplanation.textContent = explanation;
+  }
+
+  phSlider.addEventListener('input', updateLab);
+  paco2Slider.addEventListener('input', updateLab);
+  hco3Slider.addEventListener('input', updateLab);
+  updateLab(); // initial
+</script>
+</body>
+</html>
