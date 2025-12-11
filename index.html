@@ -797,7 +797,7 @@
 
   function classifyABG(ph, paco2, hco3) {
   // Normal ranges and midpoints
-  const phLow = 7.35, phHigh = 7.45;
+  const phLow = 7.34, phHigh = 7.46;
   const paco2Norm = 40; // midpoint 35-45
   const hco3Norm = 24;  // midpoint 22-26
 
@@ -856,10 +856,10 @@
   let explanation = '';
 
   // Helper: is value "abnormal" relative to normal ranges
-  const paco2AbnormalHigh = paco2 > 45;
-  const paco2AbnormalLow = paco2 < 35;
-  const hco3AbnormalHigh = hco3 > 26;
-  const hco3AbnormalLow = hco3 < 22;
+  const paco2AbnormalHigh = paco2 > 46;
+  const paco2AbnormalLow = paco2 < 34;
+  const hco3AbnormalHigh = hco3 > 27;
+  const hco3AbnormalLow = hco3 < 21;
 
   // Evaluate compensation
   if (primaryType === 'resp') {
@@ -955,6 +955,7 @@
 </script>
 </body>
 </html>
+
 
 
 
