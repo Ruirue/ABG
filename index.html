@@ -802,7 +802,7 @@
   const hco3Norm = 24;  // midpoint 22-26
 
   // pH state
-  const phState = ph < phLow ? 'acidemia' : ph > phHigh ? 'alkalemia' : 'normal';
+  const phState = ph < phLow ? 'Acidosis' : ph > phHigh ? 'alkalosis' : 'normal';
 
   // deviations (signed)
   const dPaCO2 = paco2 - paco2Norm;
@@ -815,16 +815,16 @@
   // Decide primary system based on which component moves in the same direction as pH
   // If both move same direction, pick the one with larger normalized deviation
   let primaryType = ''; // 'resp' or 'met'
-  if (phState === 'acidemia') {
-    const paco2Supports = dPaCO2 > 0;   // PaCO2 high supports acidemia (respiratory)
-    const hco3Supports = dHCO3 < 0;     // HCO3 low supports acidemia (metabolic)
+  if (phState === 'Acidosis') {
+    const paco2Supports = dPaCO2 > 0;   // PaCO2 high supports Acidosis (respiratory)
+    const hco3Supports = dHCO3 < 0;     // HCO3 low supports Acidosis (metabolic)
     if (paco2Supports && !hco3Supports) primaryType = 'resp';
     else if (hco3Supports && !paco2Supports) primaryType = 'met';
     else if (paco2Supports && hco3Supports) primaryType = scorePaCO2 >= scoreHCO3 ? 'resp' : 'met';
     else primaryType = scorePaCO2 >= scoreHCO3 ? 'resp' : 'met';
-  } else if (phState === 'alkalemia') {
-    const paco2Supports = dPaCO2 < 0;   // PaCO2 low supports alkalemia (respiratory)
-    const hco3Supports = dHCO3 > 0;     // HCO3 high supports alkalemia (metabolic)
+  } else if (phState === 'alkalosis') {
+    const paco2Supports = dPaCO2 < 0;   // PaCO2 low supports alkalosis (respiratory)
+    const hco3Supports = dHCO3 > 0;     // HCO3 high supports alkalosis (metabolic)
     if (paco2Supports && !hco3Supports) primaryType = 'resp';
     else if (hco3Supports && !paco2Supports) primaryType = 'met';
     else if (paco2Supports && hco3Supports) primaryType = scorePaCO2 >= scoreHCO3 ? 'resp' : 'met';
@@ -838,13 +838,13 @@
   // Map primaryType + phState to one of the four pattern strings
   let pattern = '';
   if (primaryType === 'resp') {
-    pattern = (phState === 'acidemia') ? 'Respiratory acidosis' :
-              (phState === 'alkalemia') ? 'Respiratory alkalosis' :
+    pattern = (phState === 'Acidosis') ? 'Respiratory acidosis' :
+              (phState === 'alkalosis') ? 'Respiratory alkalosis' :
               // pH normal: infer direction from PaCO2
               (dPaCO2 > 0 ? 'Respiratory acidosis' : dPaCO2 < 0 ? 'Respiratory alkalosis' : 'Respiratory disturbance');
   } else {
-    pattern = (phState === 'acidemia') ? 'Metabolic acidosis' :
-              (phState === 'alkalemia') ? 'Metabolic alkalosis' :
+    pattern = (phState === 'Acidosis') ? 'Metabolic acidosis' :
+              (phState === 'alkalosis') ? 'Metabolic alkalosis' :
               // pH normal: infer direction from HCO3
               (dHCO3 < 0 ? 'Metabolic acidosis' : dHCO3 > 0 ? 'Metabolic alkalosis' : 'Metabolic disturbance');
   }
@@ -955,5 +955,6 @@
 </script>
 </body>
 </html>
+
 
 
