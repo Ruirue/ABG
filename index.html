@@ -796,92 +796,73 @@
   const labExplanation = document.getElementById('labExplanation');
 
   function classifyABG(ph, paco2, hco3) {
-    const phState = ph < 7.35 ? 'acidosis' : ph > 7.45 ? 'alkalosis' : 'normal';
+  const phState = ph < 7.35 ? 'acidemia' : ph > 7.45 ? 'alkalemia' : 'normal';
+  const respAcid = paco2 > 45;
+  const respAlk = paco2 < 35;
+  const metabAcid = hco3 < 22;
+  const metabAlk = hco3 > 26;
 
-    const respAcid = paco2 > 45;
-    const respAlk = paco2 < 35;
-    const metabAcid = hco3 < 22;
-    const metabAlk = hco3 > 26;
+  let primary = '';
+  let compensation = '';
+  let conclusion = '';
+  let explanation = '';
 
-    let primary = 'normal';
-    let explanation = '';
-
-    if (phState === 'normal') {
-      if ((respAcid && metabAlk) || (respAlk && metabAcid)) {
-        primary = 'compensated-mixed';
-        explanation = 'pH is normal, but PaCO₂ and HCO₃⁻ pull in opposite directions. This suggests a compensated or mixed disorder.';
-      } else if (respAcid || respAlk || metabAcid || metabAlk) {
-        primary = 'compensated-single';
-        explanation = 'pH is normal but one component is off. Likely a fully compensated respiratory or metabolic disturbance.';
-      } else {
-        primary = 'normal';
-        explanation = 'All values are near normal. No clear acid–base disorder.';
-      }
-    } else if (phState === 'acidosis') {
-      if (respAcid && !metabAcid) {
-        primary = 'respiratory-acidosis';
-        explanation = 'pH is low and PaCO₂ is high → CO₂ retention. Kidneys may later raise HCO₃⁻ to compensate.';
-      } else if (metabAcid && !respAcid) {
-        primary = 'metabolic-acidosis';
-        explanation = 'pH is low and HCO₃⁻ is low → metabolic acid gain or bicarbonate loss. Lungs should blow off CO₂ to help.';
-      } else if (respAcid && metabAcid) {
-        primary = 'mixed-acidosis';
-        explanation = 'Both PaCO₂ and HCO₃⁻ push pH down. Think severe combined respiratory + metabolic acidosis.';
-      } else {
-        primary = 'unclear-acidotic';
-        explanation = 'pH is acidemic, but the pattern does not clearly fit a single primary disturbance.';
-      }
-    } else if (phState === 'alkalosis') {
-      if (respAlk && !metabAlk) {
-        primary = 'respiratory-alkalosis';
-        explanation = 'pH is high and PaCO₂ is low → hyperventilation. Kidneys may later lower HCO₃⁻ to compensate.';
-      } else if (metabAlk && !respAlk) {
-        primary = 'metabolic-alkalosis';
-        explanation = 'pH is high and HCO₃⁻ is high → acid loss or bicarbonate gain. Lungs may retain CO₂ as compensation.';
-      } else if (respAlk && metabAlk) {
-        primary = 'mixed-alkalosis';
-        explanation = 'Both PaCO₂ and HCO₃⁻ push pH up. Think combined respiratory + metabolic alkalosis.';
-      } else {
-        primary = 'unclear-alkalotic';
-        explanation = 'pH is alkalemic, but the pattern does not clearly fit a single primary disturbance.';
-      }
+  if (phState === 'normal') {
+    if ((respAcid && metabAlk) || (respAlk && metabAcid)) {
+      primary = 'Mixed disturbance';
+      compensation = 'Fully compensated';
+      explanation = 'pH is normal, but both PaCO₂ and HCO₃⁻ are abnormal in opposite directions.';
+    } else if (respAcid || respAlk || metabAcid || metabAlk) {
+      primary = respAcid || respAlk ? 'Respiratory' : 'Metabolic';
+      compensation = 'Fully compensated';
+      explanation = 'pH is normal, but one component is abnormal — full compensation achieved.';
+    } else {
+      primary = 'None';
+      compensation = 'Normal';
+      explanation = 'All values are within normal range.';
     }
+  } else {
+    const primaryResp = (phState === 'acidemia' && respAcid) || (phState === 'alkalemia' && respAlk);
+    const primaryMet = (phState === 'acidemia' && metabAcid) || (phState === 'alkalemia' && metabAlk);
 
-    let conclusion = '';
-    switch (primary) {
-      case 'normal':
-        conclusion = 'Normal acid–base status.';
-        break;
-      case 'respiratory-acidosis':
-        conclusion = 'Primary respiratory acidosis.';
-        break;
-      case 'metabolic-acidosis':
-        conclusion = 'Primary metabolic acidosis.';
-        break;
-      case 'respiratory-alkalosis':
-        conclusion = 'Primary respiratory alkalosis.';
-        break;
-      case 'metabolic-alkalosis':
-        conclusion = 'Primary metabolic alkalosis.';
-        break;
-      case 'mixed-acidosis':
-        conclusion = 'Mixed respiratory and metabolic acidosis.';
-        break;
-      case 'mixed-alkalosis':
-        conclusion = 'Mixed respiratory and metabolic alkalosis.';
-        break;
-      case 'compensated-mixed':
-        conclusion = 'Compensated or mixed disturbance with normal pH.';
-        break;
-      case 'compensated-single':
-        conclusion = 'Fully compensated primary disturbance (normal pH, abnormal component).';
-        break;
-      default:
-        conclusion = 'Acid–base disturbance present. Correlate with the clinical picture.';
+    if (primaryResp && primaryMet) {
+      primary = 'Mixed respiratory + metabolic';
+      compensation = 'None';
+      explanation = 'Both PaCO₂ and HCO₃⁻ push pH in the same direction — mixed disturbance.';
+    } else if (primaryResp) {
+      primary = 'Respiratory';
+      if ((phState === 'acidemia' && metabAlk) || (phState === 'alkalemia' && metabAcid)) {
+        compensation = 'Partial';
+        explanation = 'pH is abnormal, PaCO₂ matches, HCO₃⁻ is compensating.';
+      } else if ((phState === 'acidemia' && hco3 >= 22 && hco3 <= 26) || (phState === 'alkalemia' && hco3 >= 22 && hco3 <= 26)) {
+        compensation = 'Uncompensated';
+        explanation = 'pH is abnormal, PaCO₂ matches, HCO₃⁻ is still normal.';
+      } else {
+        compensation = 'Unclear';
+        explanation = 'Respiratory imbalance detected, but compensation pattern is atypical.';
+      }
+    } else if (primaryMet) {
+      primary = 'Metabolic';
+      if ((phState === 'acidemia' && respAlk) || (phState === 'alkalemia' && respAcid)) {
+        compensation = 'Partial';
+        explanation = 'pH is abnormal, HCO₃⁻ matches, PaCO₂ is compensating.';
+      } else if ((phState === 'acidemia' && paco2 >= 35 && paco2 <= 45) || (phState === 'alkalemia' && paco2 >= 35 && paco2 <= 45)) {
+        compensation = 'Uncompensated';
+        explanation = 'pH is abnormal, HCO₃⁻ matches, PaCO₂ is still normal.';
+      } else {
+        compensation = 'Unclear';
+        explanation = 'Metabolic imbalance detected, but compensation pattern is atypical.';
+      }
+    } else {
+      primary = 'Unclear';
+      compensation = 'Unclear';
+      explanation = 'pH is abnormal, but neither PaCO₂ nor HCO₃⁻ clearly explain it.';
     }
-
-    return { conclusion, explanation };
   }
+
+  conclusion = `${primary} ${phState !== 'normal' ? phState : ''} (${compensation} compensation)`.trim();
+  return { conclusion, explanation };
+}
 
   function updateLab() {
     const ph = parseFloat(phSlider.value);
@@ -906,3 +887,4 @@
 </script>
 </body>
 </html>
+
