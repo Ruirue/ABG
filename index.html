@@ -797,141 +797,146 @@
 
   function classifyABG(ph, paco2, hco3) {
   // Normal ranges and midpoints
-  const phLow = 7.34, phHigh = 7.46;
-  const paco2Norm = 40; // midpoint 35-45
-  const hco3Norm = 24;  // midpoint 22-26
+  const phLow = 7.35, phHigh = 7.45, phMid = 7.40;
+  const paco2Low = 35, paco2High = 45, paco2Mid = 40;
+  const hco3Low = 22, hco3High = 26, hco3Mid = 24;
 
-  // pH state
-  const phState = ph < phLow ? 'Acidosis' : ph > phHigh ? 'alkalosis' : 'normal';
+  // Small tolerances for "near-normal" (prevents overcalling tiny deviations)
+  const phTol = 0.02;      // ±0.02 pH units
+  const paco2Tol = 2;      // ±2 mmHg
+  const hco3Tol = 1;       // ±1 mEq/L
 
-  // deviations (signed)
-  const dPaCO2 = paco2 - paco2Norm;
-  const dHCO3 = hco3 - hco3Norm;
+  // Quick normal/near-normal checks
+  const phInRange = ph >= phLow && ph <= phHigh;
+  const paco2InRange = paco2 >= paco2Low && paco2 <= paco2High;
+  const hco3InRange = hco3 >= hco3Low && hco3 <= hco3High;
 
-  // normalized magnitudes for tie-breaking (use typical clinical ranges)
-  const scorePaCO2 = Math.abs(dPaCO2) / 20; // 20 mmHg ~ wide range
-  const scoreHCO3 = Math.abs(dHCO3) / 12;   // 12 mEq/L ~ wide range
+  const phNear = Math.abs(ph - phMid) <= phTol;
+  const paco2Near = Math.abs(paco2 - paco2Mid) <= paco2Tol;
+  const hco3Near = Math.abs(hco3 - hco3Mid) <= hco3Tol;
 
-  // Decide primary system based on which component moves in the same direction as pH
-  // If both move same direction, pick the one with larger normalized deviation
-  let primaryType = ''; // 'resp' or 'met'
-  if (phState === 'Acidosis') {
-    const paco2Supports = dPaCO2 > 0;   // PaCO2 high supports Acidosis (respiratory)
-    const hco3Supports = dHCO3 < 0;     // HCO3 low supports Acidosis (metabolic)
+  // If all three are strictly in range OR all three are near normal, report Normal
+  if ((phInRange && paco2InRange && hco3InRange) || (phNear && paco2Near && hco3Near)) {
+    return {
+      conclusion: 'Normal acid–base status.',
+      explanation: 'pH, PaCO₂, and HCO₃⁻ are within normal or near‑normal limits; no clear primary disturbance.'
+    };
+  }
+
+  // Otherwise proceed to determine primary pattern and compensation
+  const phState = ph < phLow ? 'acidemia' : ph > phHigh ? 'alkalemia' : 'normal';
+
+  // Signed deviations from midpoints
+  const dPaCO2 = paco2 - paco2Mid;
+  const dHCO3 = hco3 - hco3Mid;
+
+  // Scores for tie-breaking (scale deviations)
+  const scorePaCO2 = Math.abs(dPaCO2) / 20; // scale factor
+  const scoreHCO3 = Math.abs(dHCO3) / 12;   // scale factor
+
+  // Decide primary system (resp or met) based on which component supports pH direction
+  let primaryType = '';
+  if (phState === 'acidemia') {
+    const paco2Supports = dPaCO2 > 0;   // PaCO2 high supports acidemia (respiratory)
+    const hco3Supports = dHCO3 < 0;     // HCO3 low supports acidemia (metabolic)
     if (paco2Supports && !hco3Supports) primaryType = 'resp';
     else if (hco3Supports && !paco2Supports) primaryType = 'met';
     else if (paco2Supports && hco3Supports) primaryType = scorePaCO2 >= scoreHCO3 ? 'resp' : 'met';
     else primaryType = scorePaCO2 >= scoreHCO3 ? 'resp' : 'met';
-  } else if (phState === 'alkalosis') {
-    const paco2Supports = dPaCO2 < 0;   // PaCO2 low supports alkalosis (respiratory)
-    const hco3Supports = dHCO3 > 0;     // HCO3 high supports alkalosis (metabolic)
+  } else if (phState === 'alkalemia') {
+    const paco2Supports = dPaCO2 < 0;   // PaCO2 low supports alkalemia (respiratory)
+    const hco3Supports = dHCO3 > 0;     // HCO3 high supports alkalemia (metabolic)
     if (paco2Supports && !hco3Supports) primaryType = 'resp';
     else if (hco3Supports && !paco2Supports) primaryType = 'met';
     else if (paco2Supports && hco3Supports) primaryType = scorePaCO2 >= scoreHCO3 ? 'resp' : 'met';
     else primaryType = scorePaCO2 >= scoreHCO3 ? 'resp' : 'met';
   } else {
-    // pH normal: choose the larger abnormality to label the underlying disturbance,
-    // but still allow "fully compensated" detection below.
+    // pH normal but not all values normal: pick the larger abnormality
     primaryType = scorePaCO2 >= scoreHCO3 ? 'resp' : 'met';
   }
 
-  // Map primaryType + phState to one of the four pattern strings
+  // Map to canonical pattern
   let pattern = '';
   if (primaryType === 'resp') {
-    pattern = (phState === 'Acidosis') ? 'Respiratory acidosis' :
-              (phState === 'alkalosis') ? 'Respiratory alkalosis' :
-              // pH normal: infer direction from PaCO2
-              (dPaCO2 > 0 ? 'Respiratory acidosis' : dPaCO2 < 0 ? 'Respiratory alkalosis' : 'Respiratory disturbance');
+    pattern = (dPaCO2 > 0) ? 'Respiratory acidosis' : (dPaCO2 < 0) ? 'Respiratory alkalosis' : 'Respiratory disturbance';
   } else {
-    pattern = (phState === 'Acidosis') ? 'Metabolic acidosis' :
-              (phState === 'alkalosis') ? 'Metabolic alkalosis' :
-              // pH normal: infer direction from HCO3
-              (dHCO3 < 0 ? 'Metabolic acidosis' : dHCO3 > 0 ? 'Metabolic alkalosis' : 'Metabolic disturbance');
+    pattern = (dHCO3 < 0) ? 'Metabolic acidosis' : (dHCO3 > 0) ? 'Metabolic alkalosis' : 'Metabolic disturbance';
   }
 
-  // Determine expected compensatory direction for the non-primary system
-  // For respiratory primary: kidneys compensate (HCO3 moves same direction as PaCO2)
-  // For metabolic primary: lungs compensate (PaCO2 moves opposite direction to HCO3)
+  // Ensure canonical pattern (fallback)
+  const canonical = ['Respiratory acidosis','Respiratory alkalosis','Metabolic acidosis','Metabolic alkalosis'];
+  if (!canonical.includes(pattern)) {
+    if (primaryType === 'resp') pattern = dPaCO2 > 0 ? 'Respiratory acidosis' : 'Respiratory alkalosis';
+    else pattern = dHCO3 < 0 ? 'Metabolic acidosis' : 'Metabolic alkalosis';
+  }
+
+  // Determine compensation: Fully / Partially / Uncompensated
+  // For respiratory primary -> kidneys compensate (HCO3 moves same direction as PaCO2)
+  // For metabolic primary -> lungs compensate (PaCO2 moves opposite direction to HCO3)
+  const paco2High = paco2 > paco2High; // not used directly; keep explicit checks below
+  const paco2Low = paco2 < paco2Low;
+  const hco3High = hco3 > hco3High;
+  const hco3Low = hco3 < hco3Low;
+
+  // Helper booleans
+  const paco2MovedUp = dPaCO2 > paco2Tol;   // moved meaningfully up
+  const paco2MovedDown = dPaCO2 < -paco2Tol; // moved meaningfully down
+  const hco3MovedUp = dHCO3 > hco3Tol;
+  const hco3MovedDown = dHCO3 < -hco3Tol;
+
   let compensation = 'Uncompensated';
   let explanation = '';
 
-  // Helper: is value "abnormal" relative to normal ranges
-  const paco2AbnormalHigh = paco2 > 46;
-  const paco2AbnormalLow = paco2 < 34;
-  const hco3AbnormalHigh = hco3 > 27;
-  const hco3AbnormalLow = hco3 < 21;
-
-  // Evaluate compensation
   if (primaryType === 'resp') {
-    // Primary respiratory: check HCO3 for renal compensation
+    // expected renal compensation: HCO3 moves same direction as PaCO2
     const expected = (pattern === 'Respiratory acidosis') ? 'up' : 'down';
-    const hco3MovedUp = hco3AbnormalHigh;
-    const hco3MovedDown = hco3AbnormalLow;
 
     if (phState === 'normal') {
-      // pH normalized → fully compensated if HCO3 moved in expected direction
+      // pH normalized -> fully compensated if HCO3 moved in expected direction beyond tolerance
       if ((expected === 'up' && hco3MovedUp) || (expected === 'down' && hco3MovedDown)) {
         compensation = 'Fully compensated';
-        explanation = `pH is within normal range while PaCO₂ and HCO₃⁻ are abnormal in opposite directions, indicating full renal compensation for a primary respiratory disturbance.`;
+        explanation = 'pH is within normal range while PaCO₂ and HCO₃⁻ are abnormal in expected directions, indicating full renal compensation for a primary respiratory disturbance.';
       } else {
-        // pH normal but HCO3 not moved as expected — treat as Uncompensated (rare)
         compensation = 'Uncompensated';
-        explanation = `pH is normal but the expected renal compensation is not present; interpret clinically.`;
+        explanation = 'pH is normal but expected renal compensation is not clearly present; interpret clinically.';
       }
     } else {
-      // pH abnormal → check if HCO3 has started to move in expected direction
+      // pH abnormal -> partially compensated if HCO3 has moved in expected direction beyond tolerance
       if ((expected === 'up' && hco3MovedUp) || (expected === 'down' && hco3MovedDown)) {
         compensation = 'Partially compensated';
-        explanation = `pH is abnormal and PaCO₂ matches the primary direction; HCO₃⁻ is moving in the expected compensatory direction but pH is not yet normalized.`;
+        explanation = 'pH is abnormal and PaCO₂ matches the primary direction; HCO₃⁻ is moving in the expected compensatory direction but pH is not yet normalized.';
       } else {
         compensation = 'Uncompensated';
-        explanation = `pH is abnormal and PaCO₂ matches the primary direction; HCO₃⁻ remains within normal range, indicating no renal compensation yet.`;
+        explanation = 'pH is abnormal and PaCO₂ matches the primary direction; HCO₃⁻ remains near normal, indicating no renal compensation yet.';
       }
     }
   } else {
-    // Primary metabolic: check PaCO2 for respiratory compensation
+    // primary metabolic: expected respiratory compensation (PaCO2 moves opposite to HCO3)
     const expected = (pattern === 'Metabolic acidosis') ? 'down' : 'up';
-    const paco2MovedDown = paco2AbnormalLow;
-    const paco2MovedUp = paco2AbnormalHigh;
 
     if (phState === 'normal') {
-      // pH normalized → fully compensated if PaCO2 moved in expected direction
       if ((expected === 'down' && paco2MovedDown) || (expected === 'up' && paco2MovedUp)) {
         compensation = 'Fully compensated';
-        explanation = `pH is within normal range while HCO₃⁻ and PaCO₂ are abnormal in opposite directions, indicating full respiratory compensation for a primary metabolic disturbance.`;
+        explanation = 'pH is within normal range while HCO₃⁻ and PaCO₂ are abnormal in expected directions, indicating full respiratory compensation for a primary metabolic disturbance.';
       } else {
         compensation = 'Uncompensated';
-        explanation = `pH is normal but the expected respiratory compensation is not present; interpret clinically.`;
+        explanation = 'pH is normal but expected respiratory compensation is not clearly present; interpret clinically.';
       }
     } else {
-      // pH abnormal → check if PaCO2 has started to move in expected direction
       if ((expected === 'down' && paco2MovedDown) || (expected === 'up' && paco2MovedUp)) {
         compensation = 'Partially compensated';
-        explanation = `pH is abnormal and HCO₃⁻ matches the primary direction; PaCO₂ is moving in the expected compensatory direction but pH is not yet normalized.`;
+        explanation = 'pH is abnormal and HCO₃⁻ matches the primary direction; PaCO₂ is moving in the expected compensatory direction but pH is not yet normalized.';
       } else {
         compensation = 'Uncompensated';
-        explanation = `pH is abnormal and HCO₃⁻ matches the primary direction; PaCO₂ remains within normal range, indicating no respiratory compensation yet.`;
+        explanation = 'pH is abnormal and HCO₃⁻ matches the primary direction; PaCO₂ remains near normal, indicating no respiratory compensation yet.';
       }
     }
-  }
-
-  // Final conclusion string (one of the four patterns + compensation)
-  // Ensure pattern is one of the four canonical names
-  const canonicalPatterns = [
-    'Respiratory acidosis',
-    'Respiratory alkalosis',
-    'Metabolic acidosis',
-    'Metabolic alkalosis'
-  ];
-  // If pattern somehow not canonical (edge), pick closest by primaryType + sign
-  if (!canonicalPatterns.includes(pattern)) {
-    if (primaryType === 'resp') pattern = dPaCO2 > 0 ? 'Respiratory acidosis' : 'Respiratory alkalosis';
-    else pattern = dHCO3 < 0 ? 'Metabolic acidosis' : 'Metabolic alkalosis';
   }
 
   const conclusion = `${pattern} — ${compensation}`;
   return { conclusion, explanation };
 }
+
   function updateLab() {
     const ph = parseFloat(phSlider.value);
     const paco2 = parseFloat(paco2Slider.value);
@@ -955,6 +960,7 @@
 </script>
 </body>
 </html>
+
 
 
 
